@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  title     String   @default("Untitled")
+  icon      String?
+  parentId  String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Page?   @relation("PageChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  children Page[]  @relation("PageChildren")
+  blocks   Block[]
+}
+
+model Block {
+  id            String    @id @default(cuid())
+  pageId        String
+  type          String    @default("paragraph")
+  content       String    @default("")
+  checked       Boolean   @default(false)
+  language      String?
+  position      Int       @default(0)
+  parentBlockId String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  page          Page      @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  parentBlock   Block?    @relation("BlockChildren", fields: [parentBlockId], references: [id], onDelete: Cascade)
+  children      Block[]   @relation("BlockChildren")
+}
