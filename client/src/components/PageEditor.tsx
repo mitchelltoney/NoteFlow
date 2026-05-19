@@ -11,12 +11,19 @@ export function PageEditor() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const titleRef = useRef<HTMLDivElement>(null);
+  const lastServerTitle = useRef<string | undefined>(undefined);
 
   const { data: page, isLoading } = useQuery({
     queryKey: ['page', id],
     queryFn: () => fetchPage(id!),
     enabled: !!id,
   });
+
+  // Reset the server-value tracker whenever we navigate to a different page
+  // so the new page's title is always written on first render.
+  useLayoutEffect(() => {
+    lastServerTitle.current = undefined;
+  }, [id]);
 
   const updatePageMutation = useMutation({
     mutationFn: ({ field, value, structural }: { field: string; value: string | null; structural?: boolean }) =>
@@ -60,12 +67,17 @@ export function PageEditor() {
     }
   }, [page, createBlockMutation]);
 
-  // Sync title to DOM only when the title element is not focused, so the
-  // cursor is never reset while the user is typing.
+  // Only write to the title DOM when the server sends a new value.
+  // title saves skip invalidation, so page.title stays stale while typing —
+  // checking focus alone is not enough and would wipe content on blur.
   useLayoutEffect(() => {
     const el = titleRef.current;
-    if (el && document.activeElement !== el && page) {
-      el.textContent = page.title;
+    if (!el || !page) return;
+    if (page.title !== lastServerTitle.current) {
+      lastServerTitle.current = page.title;
+      if (document.activeElement !== el) {
+        el.textContent = page.title;
+      }
     }
   });
 

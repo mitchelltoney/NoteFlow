@@ -62,12 +62,20 @@ function ContentEditable({
   setRef?: (el: HTMLDivElement | null) => void;
 }) {
   const elRef = useRef<HTMLDivElement>(null);
+  // Tracks the last value the server gave us. We only write to the DOM when
+  // this changes — NOT on every render — so blurring while the prop is stale
+  // (content saves skip invalidation) never overwrites what the user typed.
+  const lastServerValue = useRef<string | undefined>(undefined);
 
-  // Runs synchronously after every render — update DOM only when not focused.
   useLayoutEffect(() => {
     const el = elRef.current;
-    if (el && document.activeElement !== el && el.textContent !== value) {
-      el.textContent = value;
+    if (!el) return;
+    if (value !== lastServerValue.current) {
+      lastServerValue.current = value;
+      // Only update DOM if user isn't actively typing in this element.
+      if (document.activeElement !== el) {
+        el.textContent = value;
+      }
     }
   });
 
