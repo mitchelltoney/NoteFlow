@@ -3,13 +3,14 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Page {
   id        String   @id @default(cuid())
-  title     String   @default("Untitled")
+  title     String   @default("Untitled") @db.Text
   icon      String?
   parentId  String?
   position  Int      @default(0)
@@ -25,7 +26,7 @@ model Block {
   id            String    @id @default(cuid())
   pageId        String
   type          String    @default("paragraph")
-  content       String    @default("")
+  content       String    @default("") @db.Text
   checked       Boolean   @default(false)
   language      String?
   position      Int       @default(0)

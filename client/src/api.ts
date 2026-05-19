@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { Page, Block } from '@noteflow/shared';
 
-const api = axios.create({ baseURL: 'http://localhost:3001' });
+const api = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001' });
 
 export const fetchPages = async (): Promise<Page[]> => {
   const { data } = await api.get('/pages');

@@ -6,8 +6,13 @@ import blocksRouter from './routes/blocks';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+  : true; // allow all in dev
+app.use(cors({ origin: corsOrigins }));
 app.use(express.json());
+
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
 app.use('/pages', pagesRouter);
 app.use('/blocks', blocksRouter);
